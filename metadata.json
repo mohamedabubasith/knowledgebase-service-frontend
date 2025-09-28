@@ -1,0 +1,5 @@
+{
+  "name": "Knowledge Base Management System",
+  "description": "A frontend application for managing knowledge bases. Users can create projects, add documents by uploading PDFs, scraping URLs, or adding manual content. They can then create searchable indexes from these documents and query them.",
+  "requestFramePermissions": []
+}
