@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { getProjects, createProject, deleteProject } from '../services/api';
-import { Spinner, Button, Card, Modal, useNotification, Badge, Input, Textarea, PlusIcon, TrashIcon, ConfirmationModal } from './ui';
+import { Spinner, Button, Card, Modal, useNotification, Input, Textarea, PlusIcon, TrashIcon, ConfirmationModal, FileTextIcon, DatabaseIcon } from './ui';
 import { Project } from '../types';
 
 type CreateProjectForm = {
@@ -78,7 +78,7 @@ const Dashboard: React.FC = () => {
                 </Button>
             </div>
 
-            {isLoading && <Spinner />}
+            {isLoading && <div className="flex justify-center py-12"><Spinner /></div>}
             {error && <p className="text-red-500">Error fetching projects: {error.message}</p>}
 
             {!isLoading && !error && (
@@ -86,30 +86,25 @@ const Dashboard: React.FC = () => {
                     {validProjects.length > 0 ? (
                         validProjects.map(project => (
                             <Link to={`/projects/${project.id}`} key={project.id} className="block group">
-                                <Card className="hover:border-[#76b900]/50 hover:-translate-y-1 transition-all duration-200 h-full flex flex-col justify-between">
+                                <Card className="hover:border-[#76b900]/80 hover:-translate-y-1 transition-all duration-200 h-full flex flex-col justify-between">
                                     <div>
-                                        <h2 className="text-xl font-bold text-[#76b900] group-hover:text-[#82cc00] transition-colors">{project.name}</h2>
-                                        <p className="text-slate-400 mt-2 flex-grow">{project.description}</p>
+                                        <h2 className="text-xl font-bold text-slate-100 group-hover:text-[#82cc00] transition-colors">{project.name}</h2>
+                                        <p className="text-slate-400 mt-2 flex-grow min-h-[40px]">{project.description}</p>
                                     </div>
-                                    <div className="mt-4 pt-4 border-t border-[#3a3f47]">
-                                         <div className="flex justify-between items-center text-sm text-slate-400">
-                                            <div className="flex space-x-4">
-                                                <Badge color="blue">Docs: {project.jobs_count}</Badge>
-                                                <Badge color="green">Indexes: {project.indexes_count}</Badge>
-                                            </div>
-                                            <div className="flex items-center space-x-2">
-                                                <span>{new Date(project.created_at).toLocaleDateString()}</span>
-                                                <Button 
-                                                    variant="danger" 
-                                                    iconOnly 
-                                                    onClick={(e) => handleDeleteClick(e, project)}
-                                                    disabled={deleteProjectMutation.isPending}
-                                                    aria-label={`Delete project ${project.name}`}
-                                                >
-                                                    <TrashIcon />
-                                                </Button>
-                                            </div>
+                                    <div className="mt-4 pt-4 border-t border-[#3a3f47] flex justify-between items-center">
+                                         <div className="flex space-x-4 text-sm text-slate-400">
+                                            <span className="flex items-center gap-2"><FileTextIcon /> {project.jobs_count} Docs</span>
+                                            <span className="flex items-center gap-2"><DatabaseIcon /> {project.indexes_count} Indexes</span>
                                          </div>
+                                        <Button 
+                                            variant="danger" 
+                                            iconOnly 
+                                            onClick={(e) => handleDeleteClick(e, project)}
+                                            disabled={deleteProjectMutation.isPending}
+                                            aria-label={`Delete project ${project.name}`}
+                                        >
+                                            <TrashIcon />
+                                        </Button>
                                     </div>
                                 </Card>
                             </Link>
@@ -119,6 +114,9 @@ const Dashboard: React.FC = () => {
                             <div className="text-center text-slate-500 py-8">
                                 <h3 className="text-lg font-semibold">No Projects Found</h3>
                                 <p className="mt-2">Get started by creating your first project.</p>
+                                <Button className="mt-6" onClick={() => setIsModalOpen(true)}>
+                                    <PlusIcon /> <span className="ml-2">Create First Project</span>
+                                </Button>
                             </div>
                         </Card>
                     )}

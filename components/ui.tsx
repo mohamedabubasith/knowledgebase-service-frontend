@@ -11,12 +11,20 @@ export const Icon: React.FC<{ path: string; className?: string }> = ({ path, cla
 );
 export const PlusIcon = () => <Icon path="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" />;
 export const SearchIcon = () => <Icon path="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" />;
-export const SyncIcon = () => <Icon path="M10 2a8 8 0 105.657 13.657l-1.414-1.414A6 6 0 1110 4V2z" className="animate-spin"/>;
+export const SyncIcon: React.FC<{ spinning: boolean }> = ({ spinning }) => (
+    <Icon path="M10 2a8 8 0 105.657 13.657l-1.414-1.414A6 6 0 1110 4V2z" className={spinning ? 'animate-spin' : ''} />
+);
 export const TrashIcon = () => <Icon path="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" />;
-export const ViewIcon = () => <Icon path="M10 12a2 2 0 100-4 2 2 0 000 4z" />;
-export const DocumentIcon = () => <Icon path="M7 2a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2V4a2 2 0 00-2-2H7zm0 2h6v12H7V4z" />;
+export const ViewIcon = () => <Icon path="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7zM15 12a3 3 0 11-6 0 3 3 0 016 0z" />;
+export const DocumentIcon: React.FC<{ className?: string }> = ({ className }) => <Icon path="M7 2a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2V4a2 2 0 00-2-2H7zm0 2h6v12H7V4z" className={className} />;
 export const WebIcon = () => <Icon path="M10 2a8 8 0 100 16 8 8 0 000-16zM6.44 3.473a.75.75 0 011.113-.023L10 5.44l2.448-1.99a.75.75 0 011.09 1.135l-3 2.455a.75.75 0 01-1.09 0l-3-2.455a.75.75 0 01-.022-1.112zM3.05 8.25a.75.75 0 01.75-.75h12.5a.75.75 0 010 1.5H3.8a.75.75 0 01-.75-.75zm.5 4a.75.75 0 01.75-.75h11.5a.75.75 0 010 1.5H4.3a.75.75 0 01-.75-.75z" />;
 export const ManualIcon = () => <Icon path="M13.586 3.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0l-1.5-1.5a2 2 0 012.828-2.828l1.5 1.5 3-3zM4.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L9 10.586l-2.293-2.293z"/>;
+export const CalendarIcon: React.FC<{ className?: string }> = ({ className }) => <Icon path="M6 8v2h2V8H6zm3 0v2h2V8H9zm3 0v2h2V8h-2zM4 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H4zm12 1H4v2h12V4z" className={className} />;
+export const ChunksIcon: React.FC<{ className?: string }> = ({ className }) => <Icon path="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 5a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V9zm0 5a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z" className={className} />;
+export const FileTextIcon = () => <Icon path="M9 2a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-3-3A1 1 0 0011.586 5H7zm2 8a1 1 0 11-2 0 1 1 0 012 0zm-2-4a1 1 0 011-1h2a1 1 0 110 2H8a1 1 0 01-1-1z" />;
+export const DatabaseIcon = () => <Icon path="M3 12v3c0 1.657 4.03 3 9 3s9-1.343 9-3v-3c0 1.657-4.03 3-9 3s-9-1.343-9-3zM3 7v3c0 1.657 4.03 3 9 3s9-1.343 9-3V7c0 1.657-4.03 3-9 3S3 8.657 3 7zm9-5c-4.97 0-9 1.343-9 3s4.03 3 9 3 9-1.343 9-3-4.03-3-9-3z" />;
+export const BrowserIcon = () => <Icon path="M3 4a2 2 0 012-2h10a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V4zm2-1h10a1 1 0 011 1v2H4V4a1 1 0 011-1zm-1 4h12v9a1 1 0 01-1 1H5a1 1 0 01-1-1V7zm4 2a1 1 0 100 2h4a1 1 0 100-2H8z" />;
+
 
 // --- Notification System ---
 interface NotificationContextType { addNotification: (message: string, type: NotificationType) => void; }
@@ -60,11 +68,13 @@ const ToastContainer: React.FC<{ notifications: Notification[]; removeNotificati
 
 // --- Re-themed UI Components ---
 
-export const Spinner: React.FC = () => ( <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-200"></div> );
+export const Spinner: React.FC<{ className?: string }> = ({ className = '' }) => (
+    <div className={`animate-spin rounded-full h-5 w-5 border-b-2 border-slate-200 ${className}`}></div>
+);
 
 export const Button: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' | 'danger', iconOnly?: boolean }> = ({ children, className, variant = 'primary', iconOnly = false, ...props }) => {
-    const baseClasses = "inline-flex items-center justify-center font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#1a1d21] disabled:opacity-50 disabled:cursor-not-allowed";
-    const sizeClasses = iconOnly ? "p-2 rounded-full" : "px-4 py-2 rounded-md";
+    const baseClasses = "inline-flex items-center justify-center font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#181a1d] disabled:opacity-50 disabled:cursor-not-allowed";
+    const sizeClasses = iconOnly ? "p-2 rounded-md" : "px-4 py-2 rounded-md";
     const variantClasses = {
         primary: 'bg-[#76b900] text-black hover:bg-[#82cc00] focus:ring-[#76b900]',
         secondary: 'bg-[#3a3f47] text-slate-200 hover:bg-[#4a5058] focus:ring-slate-400',
@@ -74,7 +84,7 @@ export const Button: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement> & { 
 };
 
 export const Card: React.FC<{ children: ReactNode; className?: string }> = ({ children, className }) => (
-    <div className={`bg-[#2a2f35] rounded-lg border border-[#3a3f47] p-6 ${className}`}>{children}</div>
+    <div className={`bg-[#2a2f35]/60 rounded-lg border border-[#3a3f47] p-6 ${className}`}>{children}</div>
 );
 
 export const Modal: React.FC<{ isOpen: boolean; onClose: () => void; title: string; children: ReactNode }> = ({ isOpen, onClose, title, children }) => {

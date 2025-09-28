@@ -13,7 +13,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
     }
 }
 
-// --- Project Management ---
+// --- Data Mappers ---
 
 const mapProjectFromApi = (apiProject: any): Project => ({
     id: apiProject.project_id,
@@ -24,6 +24,32 @@ const mapProjectFromApi = (apiProject: any): Project => ({
     indexes_count: apiProject.indexes_count,
 });
 
+const mapJobFromApi = (apiJob: any): ProjectJob => ({
+    ...apiJob,
+    status: apiJob.status?.toLowerCase() ?? 'failed',
+    type: apiJob.type?.toLowerCase() === 'file' ? 'pdf' : (apiJob.type?.toLowerCase() ?? 'manual'),
+});
+
+const mapIndexFromApi = (apiIndex: any): ProjectIndex => {
+    const status = apiIndex.status?.toLowerCase() ?? 'created';
+    let finalStatus: ProjectIndex['status'] = 'created';
+
+    const validStatuses: Array<ProjectIndex['status']> = ['synced', 'syncing', 'failed', 'created', 'sync_failed'];
+    if (validStatuses.includes(status)) {
+        finalStatus = status;
+    }
+    
+    if (status === 'failed' && apiIndex.sync_error) {
+        finalStatus = 'sync_failed';
+    }
+
+    return {
+        ...apiIndex,
+        status: finalStatus
+    };
+};
+
+// --- Project Management ---
 
 export const getProjects = async (): Promise<Project[]> => {
     const response = await fetch(`${API_BASE_URL}/api/projects/`);
@@ -63,24 +89,15 @@ export const deleteProject = async (projectId: string): Promise<any> => {
 export const getProjectJobs = async (projectId: string): Promise<ProjectJob[]> => {
     const response = await fetch(`${API_BASE_URL}/api/projects/${projectId}/jobs`);
     if (!response.ok) throw new Error('Network response was not ok');
-    const data = await handleResponse<{ jobs: ProjectJob[] }>(response);
-    return data.jobs || [];
+    const data = await handleResponse<{ jobs: any[] }>(response);
+    return (data.jobs || []).map(mapJobFromApi);
 };
 
 export const getProjectIndexes = async (projectId: string): Promise<ProjectIndex[]> => {
-    const response = await fetch(`${API_BASE_URL}/api/projects/${projectId}/indexes`);
+    const response = await fetch(`${API_BASE_URL}/api/indexes/${projectId}/`);
     if (!response.ok) throw new Error('Network response was not ok');
-    const data = await handleResponse<{ indexes: ProjectIndex[] }>(response);
-    // Manually add 'created' status if not synced and not in another state
-    return (data.indexes || []).map(index => {
-        if (!index.synced && index.status !== 'syncing' && index.status !== 'failed') {
-            return { ...index, status: 'created' };
-        }
-        if (index.status === 'failed' && index.sync_error) {
-            return { ...index, status: 'sync_failed' };
-        }
-        return index;
-    });
+    const data = await handleResponse<{ indexes: any[] }>(response);
+    return (data.indexes || []).map(mapIndexFromApi);
 };
 
 // --- Document/Job Management ---
@@ -117,7 +134,8 @@ export const addManualContent = async (data: { projectId: string; title: string;
 export const getJobContent = async (jobId: string): Promise<{ content: string }> => {
     const response = await fetch(`${API_BASE_URL}/api/documents/jobs/${jobId}/content`);
     if (!response.ok) throw new Error('Network response was not ok');
-    return handleResponse<{ content: string }>(response);
+    const data = await handleResponse<{ content: string }>(response);
+    return { content: data.content };
 };
 
 export const deleteJob = async (jobId: string): Promise<any> => {
@@ -141,11 +159,16 @@ export const createIndex = async (data: { projectId: string; name: string; descr
     return handleResponse<ProjectIndex>(response);
 };
 
-export const syncIndex = async (indexId: string): Promise<any> => {
+export const syncIndex = async (data: { indexId: string; embedding_model: string; chunk_ratio: number; overlap_ratio: number; }): Promise<any> => {
     const response = await fetch(`${API_BASE_URL}/api/indexes/sync`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ index_id: indexId }),
+        body: JSON.stringify({
+            index_id: data.indexId,
+            embedding_model: data.embedding_model,
+            chunk_ratio: data.chunk_ratio,
+            overlap_ratio: data.overlap_ratio
+        }),
     });
     if (!response.ok) throw new Error('Failed to start sync');
     return handleResponse<any>(response);
