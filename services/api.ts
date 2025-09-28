@@ -50,6 +50,14 @@ export const getProject = async (projectId: string): Promise<Project | undefined
     return mapProjectFromApi(data);
 };
 
+export const deleteProject = async (projectId: string): Promise<any> => {
+    const response = await fetch(`${API_BASE_URL}/api/projects/${projectId}`, {
+        method: 'DELETE',
+    });
+    if (!response.ok) throw new Error('Failed to delete project');
+    return handleResponse<any>(response);
+};
+
 // --- Project Details ---
 
 export const getProjectJobs = async (projectId: string): Promise<ProjectJob[]> => {

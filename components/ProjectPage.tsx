@@ -19,7 +19,7 @@ import {
 import { Project, ProjectJob, ProjectIndex, SearchResult } from '../types';
 import { 
     Spinner, Card, Badge, NavigationTabs, Button, Modal, useNotification, Textarea, Input,
-    TrashIcon, SearchIcon, SyncIcon, ViewIcon, DocumentIcon, WebIcon, ManualIcon
+    TrashIcon, SearchIcon, SyncIcon, ViewIcon, DocumentIcon, WebIcon, ManualIcon, ConfirmationModal
 } from './ui';
 
 // --- Reusable Badge Components ---
@@ -189,21 +189,30 @@ const DocumentViewer: React.FC<{ jobId: string | null; isOpen: boolean; onClose:
 
 const DocumentsList: React.FC<{ jobs: ProjectJob[]; onSelectView: (jobId: string) => void; }> = ({ jobs, onSelectView }) => {
     const { projectId } = useParams<{ projectId: string }>();
+    const [jobToDelete, setJobToDelete] = useState<ProjectJob | null>(null);
     const queryClient = useQueryClient();
     const { addNotification } = useNotification();
     
-    const deleteMutation = useMutation({
+    const deleteMutation = useMutation<any, Error, string>({
         mutationFn: deleteJob,
         onSuccess: () => {
             addNotification('Document deleted.', 'success');
             queryClient.invalidateQueries({ queryKey: ['jobs', projectId] });
+            setJobToDelete(null);
         },
-        onError: (error: Error) => { addNotification(`Delete failed: ${error.message}`, 'error'); },
+        onError: (error: Error) => {
+            addNotification(`Delete failed: ${error.message}`, 'error');
+            setJobToDelete(null);
+        },
     });
 
-    const handleDelete = (jobId: string) => {
-        if (window.confirm('Are you sure you want to delete this document?')) {
-            deleteMutation.mutate(jobId);
+    const handleDeleteClick = (job: ProjectJob) => {
+        setJobToDelete(job);
+    };
+
+    const confirmDeleteJob = () => {
+        if (jobToDelete) {
+            deleteMutation.mutate(jobToDelete.id);
         }
     };
     
@@ -234,11 +243,22 @@ const DocumentsList: React.FC<{ jobs: ProjectJob[]; onSelectView: (jobId: string
                         <div className="flex items-center space-x-2 flex-shrink-0">
                             <JobStatusBadge status={job.status} />
                             <Button variant="secondary" iconOnly onClick={() => onSelectView(job.id)}><ViewIcon /></Button>
-                            <Button variant="danger" iconOnly onClick={() => handleDelete(job.id)} disabled={deleteMutation.isPending}><TrashIcon /></Button>
+                            <Button variant="danger" iconOnly onClick={() => handleDeleteClick(job)} disabled={deleteMutation.isPending}><TrashIcon /></Button>
                         </div>
                     </div>
                 </Card>
             ))}
+
+            <ConfirmationModal
+                isOpen={!!jobToDelete}
+                onClose={() => setJobToDelete(null)}
+                onConfirm={confirmDeleteJob}
+                title="Delete Document?"
+                isConfirming={deleteMutation.isPending && deleteMutation.variables === jobToDelete?.id}
+            >
+                <p>Are you sure you want to delete the document <strong className="font-mono text-slate-200">{jobToDelete?.filename}</strong>?</p>
+                <p className="mt-2 text-yellow-400">Note: Deletion will fail if this document is currently part of a synced index.</p>
+            </ConfirmationModal>
         </div>
     );
 };
@@ -298,6 +318,7 @@ const SearchInterface: React.FC<{ indexId: string }> = ({ indexId }) => {
 const IndexCard: React.FC<{ index: ProjectIndex }> = ({ index }) => {
     const { projectId } = useParams<{ projectId: string }>();
     const [isSearchVisible, setIsSearchVisible] = useState(false);
+    const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
     const queryClient = useQueryClient();
     const { addNotification } = useNotification();
 
@@ -315,9 +336,17 @@ const IndexCard: React.FC<{ index: ProjectIndex }> = ({ index }) => {
         onSuccess: () => {
             addNotification('Index deleted.', 'success');
             queryClient.invalidateQueries({ queryKey: ['indexes', projectId] });
+            setIsConfirmingDelete(false);
         },
-        onError: (error: Error) => addNotification(`Delete failed: ${error.message}`, 'error'),
+        onError: (error: Error) => {
+            addNotification(`Delete failed: ${error.message}`, 'error');
+            setIsConfirmingDelete(false);
+        },
     });
+    
+    const confirmDeleteIndex = () => {
+        deleteMutation.mutate();
+    };
 
     return (
         <Card>
@@ -333,7 +362,7 @@ const IndexCard: React.FC<{ index: ProjectIndex }> = ({ index }) => {
                 <div className="flex items-center space-x-2 flex-shrink-0">
                     <IndexStatusBadge status={index.status} />
                     <Button variant="secondary" iconOnly onClick={() => setIsSearchVisible(!isSearchVisible)} disabled={index.status !== 'synced'}><SearchIcon /></Button>
-                    <Button variant="danger" iconOnly onClick={() => { if(window.confirm('Delete this index?')) deleteMutation.mutate()}} disabled={deleteMutation.isPending}><TrashIcon /></Button>
+                    <Button variant="danger" iconOnly onClick={() => setIsConfirmingDelete(true)} disabled={deleteMutation.isPending}><TrashIcon /></Button>
                 </div>
             </div>
 
@@ -348,6 +377,17 @@ const IndexCard: React.FC<{ index: ProjectIndex }> = ({ index }) => {
             {index.status === 'sync_failed' && <p className="text-red-500 text-xs mt-2">Error: {index.sync_error}</p>}
             
             {isSearchVisible && <SearchInterface indexId={index.id} />}
+
+            <ConfirmationModal
+                isOpen={isConfirmingDelete}
+                onClose={() => setIsConfirmingDelete(false)}
+                onConfirm={confirmDeleteIndex}
+                title={`Delete Index: ${index.name}?`}
+                isConfirming={deleteMutation.isPending}
+            >
+                <p>Are you sure you want to delete this index? All associated data in the vector database will be permanently removed.</p>
+                <p className="mt-2 font-semibold text-red-400">This action cannot be undone.</p>
+            </ConfirmationModal>
         </Card>
     );
 };

@@ -124,3 +124,34 @@ export const NavigationTabs: React.FC<{ tabs: { name: string, to: string }[] }> 
         </nav>
     </div>
 );
+
+export const ConfirmationModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    onConfirm: () => void;
+    title: string;
+    children: ReactNode;
+    confirmText?: string;
+    isConfirming?: boolean;
+}> = ({ isOpen, onClose, onConfirm, title, children, confirmText = 'Delete', isConfirming = false }) => {
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title={title}>
+            <div>
+                <div className="text-slate-400 mb-6">{children}</div>
+                <div className="flex justify-end space-x-3">
+                    <Button type="button" variant="secondary" onClick={onClose} disabled={isConfirming}>
+                        Cancel
+                    </Button>
+                    <Button type="button" variant="danger" onClick={onConfirm} disabled={isConfirming}>
+                        {isConfirming ? (
+                            <span className="inline-flex items-center">
+                                <Spinner />
+                                <span className="ml-2">Deleting...</span>
+                            </span>
+                        ) : confirmText}
+                    </Button>
+                </div>
+            </div>
+        </Modal>
+    );
+};

@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { getProjects, createProject } from '../services/api';
-import { Spinner, Button, Card, Modal, useNotification, Badge, Input, Textarea, PlusIcon } from './ui';
+import { getProjects, createProject, deleteProject } from '../services/api';
+import { Spinner, Button, Card, Modal, useNotification, Badge, Input, Textarea, PlusIcon, TrashIcon, ConfirmationModal } from './ui';
 import { Project } from '../types';
 
 type CreateProjectForm = {
@@ -13,6 +13,7 @@ type CreateProjectForm = {
 
 const Dashboard: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
     const queryClient = useQueryClient();
     const { addNotification } = useNotification();
 
@@ -32,12 +33,37 @@ const Dashboard: React.FC = () => {
             addNotification(`Error: ${err.message}`, 'error');
         }
     });
+
+    const deleteProjectMutation = useMutation<any, Error, string>({
+        mutationFn: deleteProject,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['projects'] });
+            addNotification('Project deleted successfully', 'success');
+            setProjectToDelete(null);
+        },
+        onError: (err: Error) => {
+            addNotification(`Error deleting project: ${err.message}`, 'error');
+            setProjectToDelete(null);
+        }
+    });
     
     const { register, handleSubmit, reset } = useForm<CreateProjectForm>();
 
     const onSubmit = (data: CreateProjectForm) => {
         createProjectMutation.mutate(data);
         reset();
+    };
+
+    const handleDeleteClick = (e: React.MouseEvent, project: Project) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setProjectToDelete(project);
+    };
+
+    const confirmDeleteProject = () => {
+        if (projectToDelete) {
+            deleteProjectMutation.mutate(projectToDelete.id);
+        }
     };
 
     const validProjects = projects?.filter(p => p && p.id) || [];
@@ -71,7 +97,18 @@ const Dashboard: React.FC = () => {
                                                 <Badge color="blue">Docs: {project.jobs_count}</Badge>
                                                 <Badge color="green">Indexes: {project.indexes_count}</Badge>
                                             </div>
-                                            <span>{new Date(project.created_at).toLocaleDateString()}</span>
+                                            <div className="flex items-center space-x-2">
+                                                <span>{new Date(project.created_at).toLocaleDateString()}</span>
+                                                <Button 
+                                                    variant="danger" 
+                                                    iconOnly 
+                                                    onClick={(e) => handleDeleteClick(e, project)}
+                                                    disabled={deleteProjectMutation.isPending}
+                                                    aria-label={`Delete project ${project.name}`}
+                                                >
+                                                    <TrashIcon />
+                                                </Button>
+                                            </div>
                                          </div>
                                     </div>
                                 </Card>
@@ -108,6 +145,17 @@ const Dashboard: React.FC = () => {
                     </div>
                 </form>
             </Modal>
+
+            <ConfirmationModal
+                isOpen={!!projectToDelete}
+                onClose={() => setProjectToDelete(null)}
+                onConfirm={confirmDeleteProject}
+                title={`Delete Project: ${projectToDelete?.name}?`}
+                isConfirming={deleteProjectMutation.isPending && deleteProjectMutation.variables === projectToDelete?.id}
+            >
+                <p>Are you sure you want to delete this project? This will permanently delete all associated documents and indexes.</p>
+                <p className="mt-2 font-semibold text-red-400">This action cannot be undone.</p>
+            </ConfirmationModal>
         </div>
     );
 };
