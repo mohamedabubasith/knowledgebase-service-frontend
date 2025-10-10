@@ -22,6 +22,7 @@ const ProjectPage: React.FC = () => {
     const tabs = [
         { name: 'Documents', to: `/projects/${projectId}/documents` },
         { name: 'Indexes', to: `/projects/${projectId}/indexes` },
+        { name: 'Integrations', to: `/projects/${projectId}/integrations` },
     ];
 
     return (

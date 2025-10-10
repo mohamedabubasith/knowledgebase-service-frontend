@@ -24,6 +24,8 @@ export const ChunksIcon: React.FC<{ className?: string }> = ({ className }) => <
 export const FileTextIcon = () => <Icon path="M9 2a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-3-3A1 1 0 0011.586 5H7zm2 8a1 1 0 11-2 0 1 1 0 012 0zm-2-4a1 1 0 011-1h2a1 1 0 110 2H8a1 1 0 01-1-1z" />;
 export const DatabaseIcon = () => <Icon path="M3 12v3c0 1.657 4.03 3 9 3s9-1.343 9-3v-3c0 1.657-4.03 3-9 3s-9-1.343-9-3zM3 7v3c0 1.657 4.03 3 9 3s9-1.343 9-3V7c0 1.657-4.03 3-9 3S3 8.657 3 7zm9-5c-4.97 0-9 1.343-9 3s4.03 3 9 3 9-1.343 9-3-4.03-3-9-3z" />;
 export const BrowserIcon = () => <Icon path="M3 4a2 2 0 012-2h10a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V4zm2-1h10a1 1 0 011 1v2H4V4a1 1 0 011-1zm-1 4h12v9a1 1 0 01-1 1H5a1 1 0 01-1-1V7zm4 2a1 1 0 100 2h4a1 1 0 100-2H8z" />;
+export const CopyIcon = () => <Icon path="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H9zm6 2H9v8h6V4zM4 6a2 2 0 012-2h2v2H6v8H4V6z" />;
+export const CheckIcon = () => <Icon path="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />;
 
 
 // --- Notification System ---

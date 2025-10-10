@@ -6,6 +6,7 @@ import Dashboard from './components/Dashboard';
 import ProjectPage from './components/ProjectPage';
 import { DocumentsTab } from './components/project/DocumentsTab';
 import { IndexesTab } from './components/project/IndexesTab';
+import { IntegrationsTab } from './components/project/IntegrationsTab';
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App: React.FC = () => {
                                 <Route index element={<Navigate to="documents" replace />} />
                                 <Route path="documents" element={<DocumentsTab />} />
                                 <Route path="indexes" element={<IndexesTab />} />
+                                <Route path="integrations" element={<IntegrationsTab />} />
                             </Route>
                         </Routes>
                     </main>
