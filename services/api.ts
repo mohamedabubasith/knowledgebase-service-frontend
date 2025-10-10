@@ -156,8 +156,22 @@ export const createIndex = async (data: { projectId: string; name: string; descr
         body: JSON.stringify(bodyData),
     });
     if (!response.ok) throw new Error('Failed to create index');
-    return handleResponse<ProjectIndex>(response);
+    const responseData = await handleResponse<any>(response);
+    return mapIndexFromApi(responseData);
 };
+
+export const updateIndex = async (data: { indexId: string; name: string; description: string; job_ids: string[] }): Promise<ProjectIndex> => {
+    const { indexId, ...bodyData } = data;
+    const response = await fetch(`${API_BASE_URL}/api/indexes/${indexId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyData),
+    });
+    if (!response.ok) throw new Error('Failed to update index');
+    const responseData = await handleResponse<any>(response);
+    return mapIndexFromApi(responseData);
+};
+
 
 export const syncIndex = async (data: { indexId: string; embedding_model: string; chunk_ratio: number; overlap_ratio: number; }): Promise<any> => {
     const response = await fetch(`${API_BASE_URL}/api/indexes/sync`, {

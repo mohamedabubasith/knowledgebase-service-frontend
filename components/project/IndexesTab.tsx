@@ -6,6 +6,7 @@ import {
     getProjectJobs,
     getProjectIndexes,
     createIndex,
+    updateIndex,
     syncIndex,
     queryIndex,
     deleteIndex
@@ -14,7 +15,7 @@ import { ProjectJob, ProjectIndex, SearchResult } from '../../types';
 import {
     Spinner, Card, Button, Modal, useNotification, Textarea, Input,
     TrashIcon, SearchIcon, SyncIcon, ConfirmationModal,
-    CalendarIcon, ChunksIcon, PlusIcon, FileTextIcon
+    CalendarIcon, ChunksIcon, PlusIcon, FileTextIcon, EditIcon
 } from '../ui';
 import { IndexStatusBadge } from './shared';
 
@@ -125,6 +126,115 @@ const CreateIndexModal: React.FC<{
     );
 };
 
+const EditIndexModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    projectId: string;
+    availableJobs: ProjectJob[];
+    indexToEdit: ProjectIndex | null;
+}> = ({ isOpen, onClose, projectId, availableJobs, indexToEdit }) => {
+    const queryClient = useQueryClient();
+    const { addNotification } = useNotification();
+    const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<CreateIndexForm>();
+    
+    React.useEffect(() => {
+        if (indexToEdit) {
+            reset({
+                name: indexToEdit.name,
+                description: indexToEdit.description,
+                job_ids: indexToEdit.job_ids,
+            });
+        }
+    }, [indexToEdit, reset]);
+
+    const watchedJobIds = watch('job_ids');
+    const selectedJobsCount = useMemo(() => {
+        if (!watchedJobIds) return 0;
+        if (typeof watchedJobIds === 'string' && watchedJobIds) return 1;
+        return Array.isArray(watchedJobIds) ? watchedJobIds.length : 0;
+    }, [watchedJobIds]);
+
+    const updateMutation = useMutation({
+        mutationFn: updateIndex,
+        onSuccess: () => {
+            addNotification('Index updated successfully. Re-sync is required for changes to take effect.', 'success');
+            queryClient.invalidateQueries({ queryKey: ['indexes', projectId] });
+            queryClient.invalidateQueries({ queryKey: ['project', projectId] });
+            onClose();
+        },
+        onError: (error: Error) => { addNotification(`Index update failed: ${error.message}`, 'error'); },
+    });
+
+    const onSubmit = (data: CreateIndexForm) => {
+        if (!indexToEdit) return;
+        const jobIdsAsArray = Array.isArray(data.job_ids) ? data.job_ids : (data.job_ids ? [data.job_ids] : []);
+        const payload = {
+            indexId: indexToEdit.id,
+            name: data.name,
+            description: data.description,
+            job_ids: jobIdsAsArray,
+        };
+        updateMutation.mutate(payload);
+    };
+
+    React.useEffect(() => { if (!isOpen) reset(); }, [isOpen, reset]);
+
+    const completedJobs = availableJobs.filter(job => job.status === 'completed');
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title="Edit Index">
+            <form onSubmit={handleSubmit(onSubmit)}>
+                <div className="space-y-4">
+                    <div>
+                        <label htmlFor="editIndexName" className="block text-sm font-medium text-slate-300 mb-1">Index Name</label>
+                        <Input id="editIndexName" type="text" {...register('name', { required: 'Index name is required.' })} />
+                        {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
+                    </div>
+                    <div>
+                        <label htmlFor="editIndexDescription" className="block text-sm font-medium text-slate-300 mb-1">Description</label>
+                        <Textarea id="editIndexDescription" {...register('description', { required: 'Description is required.' })} rows={2} />
+                        {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>}
+                    </div>
+                    <div>
+                         <label className="block text-sm font-medium text-slate-300 mb-1">Select Documents ({selectedJobsCount}/{completedJobs.length})</label>
+                        <p className="text-xs text-slate-500 mb-2">Select 1 to 5 documents to include in this index.</p>
+                         <Card className="max-h-60 overflow-y-auto p-4 bg-[#1a1d21] border border-[#3a3f47]">
+                            {completedJobs.length > 0 ? completedJobs.map(job => (
+                                <div key={job.id} className="flex items-center space-x-3 p-2 rounded-md hover:bg-[#2a2f35]">
+                                    <input
+                                        type="checkbox"
+                                        id={`edit-job-${job.id}`}
+                                        value={job.id}
+                                        {...register('job_ids', {
+                                            required: 'Select at least one document.',
+                                            validate: (value) => {
+                                                const selected = Array.isArray(value) ? value : (value ? [value] : []);
+                                                if (selected.length === 0) return 'Select at least one document.';
+                                                if (selected.length > 5) return 'You can select up to 5 documents.';
+                                                return true;
+                                            }
+                                        })}
+                                        className="h-4 w-4 rounded border-gray-300 text-[#76b900] focus:ring-[#76b900]"
+                                    />
+                                    <label htmlFor={`edit-job-${job.id}`} className="flex-grow text-sm text-slate-300">{job.filename}</label>
+                                </div>
+                            )) : <p className="text-slate-500 text-center py-4">No completed documents to select from.</p>}
+                        </Card>
+                         {errors.job_ids && <p className="text-red-500 text-sm mt-1">{errors.job_ids.message}</p>}
+                    </div>
+                </div>
+                <div className="mt-6 flex justify-end space-x-3">
+                    <Button type="button" variant="secondary" onClick={onClose} disabled={updateMutation.isPending}>Cancel</Button>
+                    <Button type="submit" disabled={updateMutation.isPending}>
+                        {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
+                    </Button>
+                </div>
+            </form>
+        </Modal>
+    );
+};
+
+
 const QueryIndexModal: React.FC<{ index: ProjectIndex | null, onClose: () => void }> = ({ index, onClose }) => {
     const { addNotification } = useNotification();
     const { register, handleSubmit, reset } = useForm<QueryForm>();
@@ -182,7 +292,7 @@ const QueryIndexModal: React.FC<{ index: ProjectIndex | null, onClose: () => voi
     );
 };
 
-const IndexList: React.FC<{ projectId: string }> = ({ projectId }) => {
+const IndexList: React.FC<{ projectId: string, onEditIndex: (index: ProjectIndex) => void }> = ({ projectId, onEditIndex }) => {
     const queryClient = useQueryClient();
     const { addNotification } = useNotification();
     const [indexToDelete, setIndexToDelete] = useState<ProjectIndex | null>(null);
@@ -265,19 +375,21 @@ const IndexList: React.FC<{ projectId: string }> = ({ projectId }) => {
                                     </div>
                                 </div>
                                 <div className="mt-4 flex flex-col sm:flex-row gap-2">
-                                    {index.status === 'created' && (
-                                        <Button className="flex-1" onClick={() => handleSync(index)} disabled={isSyncActionInProgress}>
-                                            {isSyncActionInProgress ? <SyncIcon spinning={true} /> : <><SyncIcon spinning={false} /><span className="ml-2">Start Sync</span></>}
-                                        </Button>
-                                    )}
-                                    {index.status === 'syncing' && <Button className="flex-1" disabled><SyncIcon spinning={true}/> <span className="ml-2">Syncing...</span></Button>}
-                                    {index.status === 'synced' && <Button className="flex-1" onClick={() => setIndexToQuery(index)}><SearchIcon /> <span className="ml-2">Query Index</span></Button>}
-                                    {index.status === 'sync_failed' && (
-                                        <Button className="flex-1" onClick={() => handleSync(index)} disabled={isSyncActionInProgress}>
-                                             {isSyncActionInProgress ? <SyncIcon spinning={true} /> : <><SyncIcon spinning={false} /><span className="ml-2">Retry Sync</span></>}
-                                        </Button>
-                                    )}
-                                    
+                                    <div className="flex-1">
+                                        {index.status === 'created' && (
+                                            <Button className="w-full" onClick={() => handleSync(index)} disabled={isSyncActionInProgress}>
+                                                {isSyncActionInProgress ? <SyncIcon spinning={true} /> : <><SyncIcon spinning={false} /><span className="ml-2">Start Sync</span></>}
+                                            </Button>
+                                        )}
+                                        {index.status === 'syncing' && <Button className="w-full" disabled><SyncIcon spinning={true}/> <span className="ml-2">Syncing...</span></Button>}
+                                        {index.status === 'synced' && <Button className="w-full" onClick={() => setIndexToQuery(index)}><SearchIcon /> <span className="ml-2">Query Index</span></Button>}
+                                        {index.status === 'sync_failed' && (
+                                            <Button className="w-full" onClick={() => handleSync(index)} disabled={isSyncActionInProgress}>
+                                                 {isSyncActionInProgress ? <SyncIcon spinning={true} /> : <><SyncIcon spinning={false} /><span className="ml-2">Retry Sync</span></>}
+                                            </Button>
+                                        )}
+                                    </div>
+                                    <Button variant="secondary" iconOnly onClick={() => onEditIndex(index)} aria-label="Edit Index"><EditIcon /></Button>
                                     <Button variant="danger" iconOnly onClick={() => setIndexToDelete(index)} disabled={deleteMutation.isPending && deleteMutation.variables === index.id}><TrashIcon /></Button>
                                 </div>
                             </Card>
@@ -312,6 +424,7 @@ const IndexList: React.FC<{ projectId: string }> = ({ projectId }) => {
 export const IndexesTab: React.FC = () => {
     const { projectId } = useParams<{ projectId: string }>();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [indexToEdit, setIndexToEdit] = useState<ProjectIndex | null>(null);
 
     const { data: jobs, isLoading: isLoadingJobs } = useQuery<ProjectJob[], Error>({
         queryKey: ['jobs', projectId],
@@ -329,13 +442,20 @@ export const IndexesTab: React.FC = () => {
                 </Button>
             </div>
             
-            <IndexList projectId={projectId} />
+            <IndexList projectId={projectId} onEditIndex={setIndexToEdit} />
 
             <CreateIndexModal
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
                 projectId={projectId}
                 availableJobs={jobs || []}
+            />
+             <EditIndexModal
+                isOpen={!!indexToEdit}
+                onClose={() => setIndexToEdit(null)}
+                projectId={projectId}
+                availableJobs={jobs || []}
+                indexToEdit={indexToEdit}
             />
         </div>
     );
