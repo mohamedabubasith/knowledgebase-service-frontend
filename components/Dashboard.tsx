@@ -1,25 +1,46 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { getProjects, createProject, deleteProject } from '../services/api';
-import { Spinner, Button, Card, Modal, useNotification, Input, Textarea, PlusIcon, TrashIcon, ConfirmationModal, FileTextIcon, DatabaseIcon } from './ui';
+import { getProjects, createProject } from '../services/api';
 import { Project } from '../types';
+import { Card, Button, PlusIcon, Spinner, Modal, Input, Textarea, useNotification, DocumentIcon, DatabaseIcon } from './ui';
 
 type CreateProjectForm = {
     name: string;
     description: string;
 };
 
+const ProjectCard: React.FC<{ project: Project }> = ({ project }) => (
+    <Link to={`/projects/${project.id}`} className="block h-full">
+        <Card className="hover:border-[#76b900]/80 transition-colors h-full flex flex-col justify-between group">
+            <div>
+                <h3 className="text-lg font-bold text-slate-100 group-hover:text-[#82cc00] transition-colors">{project.name}</h3>
+                <p className="text-sm text-slate-400 mt-2 min-h-[40px]">{project.description}</p>
+            </div>
+            <div className="mt-4 pt-4 border-t border-[#3a3f47] flex items-center justify-between text-xs text-slate-500">
+                <div className="flex items-center gap-2">
+                    <DocumentIcon className="w-4 h-4" />
+                    <span>{project.jobs_count} Documents</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <DatabaseIcon />
+                    <span>{project.indexes_count} Indexes</span>
+                </div>
+            </div>
+        </Card>
+    </Link>
+);
+
+
 const Dashboard: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
     const queryClient = useQueryClient();
     const { addNotification } = useNotification();
 
     const { data: projects, isLoading, error } = useQuery<Project[], Error>({
         queryKey: ['projects'],
-        queryFn: getProjects
+        queryFn: getProjects,
     });
 
     const createProjectMutation = useMutation({
@@ -31,22 +52,9 @@ const Dashboard: React.FC = () => {
         },
         onError: (err: Error) => {
             addNotification(`Error: ${err.message}`, 'error');
-        }
+        },
     });
 
-    const deleteProjectMutation = useMutation<any, Error, string>({
-        mutationFn: deleteProject,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['projects'] });
-            addNotification('Project deleted successfully', 'success');
-            setProjectToDelete(null);
-        },
-        onError: (err: Error) => {
-            addNotification(`Error deleting project: ${err.message}`, 'error');
-            setProjectToDelete(null);
-        }
-    });
-    
     const { register, handleSubmit, reset } = useForm<CreateProjectForm>();
 
     const onSubmit = (data: CreateProjectForm) => {
@@ -54,74 +62,40 @@ const Dashboard: React.FC = () => {
         reset();
     };
 
-    const handleDeleteClick = (e: React.MouseEvent, project: Project) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setProjectToDelete(project);
-    };
-
-    const confirmDeleteProject = () => {
-        if (projectToDelete) {
-            deleteProjectMutation.mutate(projectToDelete.id);
-        }
-    };
-
-    const validProjects = projects?.filter(p => p && p.id) || [];
-
     return (
-        <div>
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold text-slate-100">Projects</h1>
-                <Button onClick={() => setIsModalOpen(true)}>
-                    <PlusIcon />
-                    <span className="ml-2">Create Project</span>
-                </Button>
-            </div>
+        <div className="min-h-screen bg-[#181a1d]">
+            <main className="p-4 md:p-8">
+                <div className="max-w-7xl mx-auto">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                        <div>
+                            <h1 className="text-3xl font-bold text-slate-100">Projects</h1>
+                            <p className="text-slate-400 mt-1">Create and manage your knowledge bases.</p>
+                        </div>
+                        <Button onClick={() => setIsModalOpen(true)}>
+                            <PlusIcon />
+                            <span className="ml-2">Create Project</span>
+                        </Button>
+                    </div>
 
-            {isLoading && <div className="flex justify-center py-12"><Spinner /></div>}
-            {error && <p className="text-red-500">Error fetching projects: {error.message}</p>}
-
-            {!isLoading && !error && (
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {validProjects.length > 0 ? (
-                        validProjects.map(project => (
-                            <Link to={`/projects/${project.id}`} key={project.id} className="block group">
-                                <Card className="hover:border-[#76b900]/80 hover:-translate-y-1 transition-all duration-200 h-full flex flex-col justify-between">
-                                    <div>
-                                        <h2 className="text-xl font-bold text-slate-100 group-hover:text-[#82cc00] transition-colors">{project.name}</h2>
-                                        <p className="text-slate-400 mt-2 flex-grow min-h-[40px]">{project.description}</p>
-                                    </div>
-                                    <div className="mt-4 pt-4 border-t border-[#3a3f47] flex justify-between items-center">
-                                         <div className="flex space-x-4 text-sm text-slate-400">
-                                            <span className="flex items-center gap-2"><FileTextIcon /> {project.jobs_count} Docs</span>
-                                            <span className="flex items-center gap-2"><DatabaseIcon /> {project.indexes_count} Indexes</span>
-                                         </div>
-                                        <Button 
-                                            variant="danger" 
-                                            iconOnly 
-                                            onClick={(e) => handleDeleteClick(e, project)}
-                                            disabled={deleteProjectMutation.isPending}
-                                            aria-label={`Delete project ${project.name}`}
-                                        >
-                                            <TrashIcon />
-                                        </Button>
-                                    </div>
-                                </Card>
-                            </Link>
-                        ))
+                    {isLoading && <div className="flex justify-center py-12"><Spinner /></div>}
+                    {error && <div className="text-center p-8 text-red-500">{error.message}</div>}
+                    
+                    {projects && projects.length > 0 ? (
+                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {projects.map(project => <ProjectCard key={project.id} project={project} />)}
+                        </div>
                     ) : (
-                        <Card className="md:col-span-2 lg:col-span-3">
-                            <div className="text-center text-slate-500 py-8">
-                                <h3 className="text-lg font-semibold">No Projects Found</h3>
-                                <p className="mt-2">Get started by creating your first project.</p>
-                                <Button className="mt-6" onClick={() => setIsModalOpen(true)}>
-                                    <PlusIcon /> <span className="ml-2">Create First Project</span>
-                                </Button>
-                            </div>
-                        </Card>
+                        !isLoading && (
+                             <Card>
+                                <div className="text-center text-slate-500 py-12">
+                                    <h3 className="text-xl font-semibold">No Projects Yet</h3>
+                                    <p className="mt-2">Click "Create Project" to get started.</p>
+                                </div>
+                            </Card>
+                        )
                     )}
                 </div>
-            )}
+            </main>
 
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create New Project">
                 <form onSubmit={handleSubmit(onSubmit)}>
@@ -143,17 +117,6 @@ const Dashboard: React.FC = () => {
                     </div>
                 </form>
             </Modal>
-
-            <ConfirmationModal
-                isOpen={!!projectToDelete}
-                onClose={() => setProjectToDelete(null)}
-                onConfirm={confirmDeleteProject}
-                title={`Delete Project: ${projectToDelete?.name}?`}
-                isConfirming={deleteProjectMutation.isPending && deleteProjectMutation.variables === projectToDelete?.id}
-            >
-                <p>Are you sure you want to delete this project? This will permanently delete all associated documents and indexes.</p>
-                <p className="mt-2 font-semibold text-red-400">This action cannot be undone.</p>
-            </ConfirmationModal>
         </div>
     );
 };
