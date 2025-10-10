@@ -1,23 +1,26 @@
 import React from 'react';
-import { Badge, Spinner } from '../ui';
+import { Badge, Spinner, CheckIcon, XCircleIcon } from '../ui';
 import { ProjectJob, ProjectIndex } from '../../types';
 
 
 export const JobStatusBadge: React.FC<{ status: ProjectJob['status'] }> = ({ status }) => {
-    const isProcessing = status === 'parsing' || status === 'processing';
-    const statusMap: Record<ProjectJob['status'], { text: string; color: 'green' | 'yellow' | 'red' | 'blue' }> = {
-        completed: { text: 'Completed', color: 'green' },
-        parsing: { text: 'Parsing', color: 'yellow' },
-        processing: { text: 'Processing', color: 'blue' },
-        failed: { text: 'Failed', color: 'red' },
+    const statusConfig = {
+        completed: { text: 'Completed', color: 'green' as const, icon: <CheckIcon className="w-3.5 h-3.5" /> },
+        parsing: { text: 'Parsing', color: 'yellow' as const, icon: <Spinner className="!h-3 !w-3 border-slate-300" /> },
+        processing: { text: 'Processing', color: 'blue' as const, icon: <Spinner className="!h-3 !w-3 border-slate-300" /> },
+        failed: { text: 'Failed', color: 'red' as const, icon: <XCircleIcon className="w-3.5 h-3.5" /> },
     };
-    const { text, color } = statusMap[status] || { text: status, color: 'gray' as 'green' };
+
+    const config = statusConfig[status];
+    
+    if (!config) {
+        return <Badge color="gray">{status}</Badge>;
+    }
+    
     return (
-        <Badge color={color}>
-            <span className="flex items-center gap-1.5">
-                {isProcessing && <Spinner className="!h-3 !w-3 border-slate-300" />}
-                {text}
-            </span>
+        <Badge color={config.color}>
+            {config.icon}
+            {config.text}
         </Badge>
     );
 };

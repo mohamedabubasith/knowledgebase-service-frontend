@@ -214,7 +214,17 @@ const DocumentList: React.FC<{ projectId: string }> = ({ projectId }) => {
                             </div>
                         </div>
                         <div className="flex items-center gap-4 self-end sm:self-center">
-                             <JobStatusBadge status={job.status} />
+                             {job.status === 'failed' && job.error ? (
+                                <div className="relative group">
+                                    <JobStatusBadge status={job.status} />
+                                    <div className="absolute bottom-full left-1/2 z-10 mb-2 w-64 -translate-x-1/2 transform rounded-lg bg-slate-900 p-3 text-sm text-slate-300 shadow-lg opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none border border-slate-700">
+                                        <p className="font-bold text-red-400">Processing Failed</p>
+                                        <p className="mt-1">{job.error}</p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <JobStatusBadge status={job.status} />
+                            )}
                              <div className="flex items-center gap-2">
                                 <Button variant="secondary" iconOnly onClick={() => setJobToView(job)} disabled={job.status !== 'completed'} aria-label="View Content"><ViewIcon /></Button>
                                 <Button variant="danger" iconOnly onClick={() => setJobToDelete(job)} disabled={deleteMutation.isPending && deleteMutation.variables === job.id} aria-label="Delete Document"><TrashIcon /></Button>

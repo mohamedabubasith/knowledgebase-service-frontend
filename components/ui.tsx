@@ -25,10 +25,11 @@ export const FileTextIcon = () => <Icon path="M9 2a2 2 0 00-2 2v12a2 2 0 002 2h6
 export const DatabaseIcon = () => <Icon path="M3 12v3c0 1.657 4.03 3 9 3s9-1.343 9-3v-3c0 1.657-4.03 3-9 3s-9-1.343-9-3zM3 7v3c0 1.657 4.03 3 9 3s9-1.343 9-3V7c0 1.657-4.03 3-9 3S3 8.657 3 7zm9-5c-4.97 0-9 1.343-9 3s4.03 3 9 3 9-1.343 9-3-4.03-3-9-3z" />;
 export const BrowserIcon = () => <Icon path="M3 4a2 2 0 012-2h10a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V4zm2-1h10a1 1 0 011 1v2H4V4a1 1 0 011-1zm-1 4h12v9a1 1 0 01-1 1H5a1 1 0 01-1-1V7zm4 2a1 1 0 100 2h4a1 1 0 100-2H8z" />;
 export const CopyIcon = () => <Icon path="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H9zm6 2H9v8h6V4zM4 6a2 2 0 012-2h2v2H6v8H4V6z" />;
-export const CheckIcon = () => <Icon path="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />;
+export const CheckIcon: React.FC<{ className?: string }> = ({ className }) => <Icon path="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" className={className} />;
 export const EditIcon = () => <Icon path="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM5 14v-7a2 2 0 012-2h3.586l-2 2H7v7h7v-2.586l2-2V14a2 2 0 01-2 2H7a2 2 0 01-2-2z" />;
 export const MenuIcon = () => <Icon path="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />;
 export const XIcon = () => <Icon path="M6.293 6.293a1 1 0 011.414 0L10 8.586l2.293-2.293a1 1 0 111.414 1.414L11.414 10l2.293 2.293a1 1 0 01-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 01-1.414-1.414L8.586 10 6.293 7.707a1 1 0 010-1.414z" />;
+export const XCircleIcon: React.FC<{ className?: string }> = ({ className }) => <Icon path="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" className={className} />;
 export const FolderIcon = () => <Icon path="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />;
 export const CpuChipIcon = () => <Icon path="M11 2a1 1 0 011 1v1h1a1 1 0 011 1v1h1a1 1 0 011 1v2a1 1 0 01-1 1h-1v1a1 1 0 01-1 1h-1v1a1 1 0 01-1 1H9a1 1 0 01-1-1v-1H7a1 1 0 01-1-1v-1H5a1 1 0 01-1-1V7a1 1 0 011-1h1V5a1 1 0 011-1h1V3a1 1 0 011-1h2zM9 8a1 1 0 100-2 1 1 0 000 2z" />;
 export const PuzzlePieceIcon = () => <Icon path="M18 10a1 1 0 01-1 1h-1v1a1 1 0 01-2 0v-1a1 1 0 00-1-1H9v-2h2a1 1 0 001-1V7a1 1 0 012 0v1h1a1 1 0 011 1v1zM4 4a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 2v2H4V6h2zM4 12a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H4zm2 2v2H4v-2h2zm8-10a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V6a2 2 0 00-2-2h-2zm2 2v2h-2V6h2z" />;
@@ -119,7 +120,7 @@ export const Badge: React.FC<{ children: ReactNode; color: 'blue' | 'green' | 'y
         red: 'bg-red-900/50 text-red-300 border-red-700/50',
         gray: 'bg-slate-700/50 text-slate-300 border-slate-600/50'
     };
-    return (<span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${colorClasses[color]}`}>{children}</span>);
+    return (<div className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full border ${colorClasses[color]}`}>{children}</div>);
 };
 
 const formElementClasses = "block w-full px-3 py-2 bg-[#1a1d21] border border-[#3a3f47] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#76b900] focus:border-transparent text-slate-200";
